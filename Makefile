@@ -1,31 +1,45 @@
 PNGFLAGS := $(shell pkg-config libpng --cflags)
 PNGLIBS := $(shell pkg-config libpng --libs)
+CC = gcc -std=c11
+CFLAGS = -O0 -Wall
 INCLUDE = -I./include
-EMCC = ~/emsdk_portable/emscripten/master/emcc
-CC = gcc
-CFLAGS =  -std=c11 -O3
-EMFLAGS = -std=c11 -O3 -g3 --js-opts 1 --closure 2
-DIST = ./bin/a.out
+ODIR = ./obj
+SDIR = ./src
+DIST = ./bin
+SRCS = $(wildcard ./src/*.c)
+OBJS = $(SRCS:./src/%.c=./obj/%.o)
+TARGET = $(DIST)/a.out
+EMCC = emcc -std=c11
+EMFLAGS = -O3 -g3 --js-opts 1 --closure 2
 
-default:
-	make build
-	make run
+all : $(TARGET)
 
-build: ./src/*.c
-	$(CC) $(CFLAGS) $(PNGFLAGS) $(INCLUDE) -o $(DIST) $(PNGLIBS) $^
+$(TARGET): $(OBJS)
+	if [ ! -d $(DIST) ]; then mkdir $(DIST); fi
+	$(CC) -o $@ $^ $(PNGLIBS)
+
+$(ODIR)/%.o: $(SDIR)/%.c
+	if [ ! -d $(ODIR) ]; then mkdir $(ODIR); fi
+	$(CC) $(CFLAGS) $(PNGFLAGS) $(INCLUDE) -o $@ -c $<
 
 debug: CFLAGS = -O1 -g
-debug: build
+debug: all
 
 run:
 	./bin/a.out test.png
 
+asmjs: ./src/*.c
+	$(EMCC) $(EMFLAGS) $(PNGFLAGS) $(INCLUDE) $(DIST).js $(PNGLIBS) $^
+
 debugjs: EMFLAGS = -O1 -g -s INLINING_LIMIT=10
 debugjs: asmjs
-
-asmjs: ./src/*.c
-	$(EMCC) $(EMFLAGS) $(PNGFLAGS) $(INCLUDE) -o $(DIST).js $(PNGLIBS) $^
 
 runjs:
 	cd ./bin
 	node a.out.js ../test.png
+
+
+
+.PHONY: clean
+clean:
+	rm -rf $(ODIR) $(DIST)

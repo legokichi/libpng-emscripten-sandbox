@@ -1,8 +1,9 @@
-#include <zlib.h>
 #include <png.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <main.h>
+
+void open_png_file(char * file_name_ptr);
 
 int main(int argc, char **argv){
   printf("[%s", *argv);
@@ -10,68 +11,64 @@ int main(int argc, char **argv){
     printf(", %s", *(argv+i));
   }
   printf("]\n");
-
   if (argc < 2){
     fprintf(stderr, "Usage: program_name <file_in>\n");
     abort();
   }
-  // http://dencha.ojaru.jp/programs_07/pg_graphic_10a2.html
-  // http://invar6.blog.fc2.com/category3-1.html
-  // http://invar6.blog.fc2.com/blog-entry-9.html
-  char* file_name = *(argv+1);
-  FILE *fp = fopen(file_name, "rb");
 
-  // check signature
-  if(fseek(fp, 0, SEEK_SET) != 0){
-    fprintf(stderr, "seek failed: %s", file_name);
-    abort();
-  }
+  char * file_name_ptr = *(argv+1); // typeof argv[1] == char *
+  open_png_file(file_name_ptr);
+
+  return 0;
+}
+
+void open_png_file(char * file_name_ptr){
+  FILE * fp = fopen(file_name_ptr, "rb");
   if (!fp){
-    fprintf(stderr, "[read_png_file] File %s could not be opened for reading", file_name);
+    fprintf(stderr, "[read_png_file] File %s could not be opened for reading\n", file_name_ptr);
     abort();
   }
+  fseek(fp, 0, SEEK_SET);
+
   char header[8]; // 8 is the maximum size that can be checked
   fread((void *)header, 1, 8, fp);
   if (png_sig_cmp((void *)header, 0, 8)){
-    fprintf(stderr, "[read_png_file] File %s is not recognized as a PNG file", file_name);
+    fprintf(stderr, "[read_png_file] File %s is not recognized as a PNG file\n", file_name_ptr);
     abort();
   }
 
   // initialize structure
+  // Next, png_struct and png_info need to be allocated and initialized.
+  // png_ptr構造体を確保 初期化
   png_structp png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
   if(!png_ptr){
-    fprintf(stderr, "[read_png_file] png_create_read_struct failed");
+    fprintf(stderr, "[read_png_file] png_create_read_struct failed\n");
     abort();
   }
+  // info_ptr 構造体を確保 初期化
   png_infop info_ptr = png_create_info_struct(png_ptr);
   if(!info_ptr){
     png_destroy_read_struct(&png_ptr, NULL, NULL);
-    fprintf(stderr, "[read_png_file] png_create_info_struct failed");
+    fprintf(stderr, "[read_png_file] png_create_info_struct failed\n");
     abort();
   }
-  // end
   png_infop end_info = png_create_info_struct(png_ptr);
   if(!end_info){
     png_destroy_read_struct(&png_ptr, &info_ptr, NULL);
-    fprintf(stderr, "end");
-    abort();
-  }
-  // error
-  // setjmp: http://www.ne.jp/asahi/hishidama/home/tech/c/setjmp.html
-  if(setjmp(png_jmpbuf(png_ptr))){
-    png_destroy_read_struct(&png_ptr, &info_ptr, &end_info);
-    fprintf(stderr, "error");
-    abort();
-  }
-
-  // read file
-  if (setjmp(png_jmpbuf(png_ptr))){
-    fprintf(stderr, "[read_png_file] Error during init_io");
+    fprintf(stderr, "[read_png_file] png_create_info_struct failed\n");
     abort();
   }
 
   // file registration
+  // read file error handling
+  if (setjmp(png_jmpbuf(png_ptr))){
+    fprintf(stderr, "[read_png_file] Error during init_io\n");
+    fclose(fp);
+    abort();
+  }
+  // libpng に fp を知らせる
   png_init_io(png_ptr, fp);
+  // 事前にシグネチャを読込確認済なら、ファイル先頭から読み飛ばしているバイト数を知らせる
   png_set_sig_bytes(png_ptr, 8);
 
   // read info
@@ -80,13 +77,29 @@ int main(int argc, char **argv){
   png_read_info(png_ptr, info_ptr);
   png_get_IHDR(png_ptr, info_ptr, &width, &height, &bit_depth, &color_type, &interlace, &compression, &filter);
 
-  // read file
+  // read file setup
   if (setjmp(png_jmpbuf(png_ptr))){
-    fprintf(stderr, "[read_png_file] Error during read_image");
+    fprintf(stderr, "[read_png_file] Error during read_image\n");
     abort();
   }
+
+  png_read_png(png_ptr, info_ptr, PNG_TRANSFORM_IDENTITY, NULL);
+
+  png_byte** row_pointers;
+  row_pointers = png_get_rows(png_ptr, info_ptr);
+  for (int y=0; y<height; y++){
+    for (int x = 0; x < width; x++){
+      min((int)row_pointers[y][x*4+0], 255);
+      min((int)row_pointers[y][x*4+1], 255);
+      min((int)row_pointers[y][x*4+2], 255);
+    }
+  }
+
   /*
-  png_bytep row_pointers[height] = (png_bytep*) malloc(sizeof(png_bytep) * height);
+
+  png_read_image(png_ptr, row_pointers);
+  png_bytep row_pointers[height];
+  row_pointers = png_malloc(png_ptr, height*sizeof(png_bytep));
   for (int y=0; y<height; y++){
     row_pointers[y] = (png_byte*) malloc(png_get_rowbytes(png_ptr,info_ptr));
   }
@@ -94,7 +107,14 @@ int main(int argc, char **argv){
   png_read_end(png_ptr, NULL);
   */
 
+  png_destroy_read_struct(&png_ptr, &info_ptr, &end_info);
+  fseek(fp, 0, SEEK_SET);
+  fclose(fp);
+}
 
+
+
+/*
   // free
   png_destroy_read_struct(&png_ptr, &info_ptr, &end_info);
   fseek(fp, 0, SEEK_SET);
@@ -108,5 +128,4 @@ int main(int argc, char **argv){
   printf("compression: %d\n", compression);
   printf("interlace: %d\n", interlace);
 
-  return 0;
-}
+*/
