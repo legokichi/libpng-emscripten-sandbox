@@ -11,12 +11,15 @@ int main(int argc, char **argv){
     printf(", %s", *(argv+i));
   }
   printf("]\n");
-  if (argc < 2){
-    fprintf(stderr, "Usage: program_name <file_in>\n");
-    abort();
-  }
 
-  char * file_name_ptr = *(argv+1); // typeof argv[1] == char *
+  char * file_name_ptr;
+  if (argc < 2){
+    //fprintf(stderr, "Usage: program_name <file_in>\n");
+    //abort();
+    file_name_ptr = &"test.png";
+  }else{
+    file_name_ptr = *(argv+1); // typeof argv[1] == char *
+  }
   open_png_file(file_name_ptr);
 
   return 0;
@@ -123,17 +126,3 @@ void open_png_file(char * file_name_ptr){
   fseek(fp, 0, SEEK_SET);
   fclose(fp);
 }
-
-
-
-/*
-
-  printf("width: %d\n", width);
-  printf("height: %d\n", height);
-  printf("color_type: %d\n", color_type);
-  printf("bit_depth: %d\n", bit_depth);
-  printf("filter: %d\n", filter);
-  printf("compression: %d\n", compression);
-  printf("interlace: %d\n", interlace);
-
-*/
