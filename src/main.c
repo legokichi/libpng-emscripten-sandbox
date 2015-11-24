@@ -77,36 +77,48 @@ void open_png_file(char * file_name_ptr){
   png_read_info(png_ptr, info_ptr);
   png_get_IHDR(png_ptr, info_ptr, &width, &height, &bit_depth, &color_type, &interlace, &compression, &filter);
 
-  // read file setup
+  printf("width: %d\n",       width);
+  printf("height: %d\n",      height);
+  printf("color_type: %d\n",  color_type);
+  printf("bit_depth: %d\n",   bit_depth);
+  printf("filter: %d\n",      filter);
+  printf("compression: %d\n", compression);
+  printf("interlace: %d\n",   interlace);
+
+  // read png file
   if (setjmp(png_jmpbuf(png_ptr))){
     fprintf(stderr, "[read_png_file] Error during read_image\n");
     abort();
   }
+  unsigned char * * row_pointers = (png_bytepp)malloc(height * sizeof(png_bytep)); // 以下３行は２次元配列を確保します
+  //row_pointers = png_malloc(png_ptr, height*sizeof(png_bytep));
 
-  png_read_png(png_ptr, info_ptr, PNG_TRANSFORM_IDENTITY, NULL);
-
-  png_byte** row_pointers;
-  row_pointers = png_get_rows(png_ptr, info_ptr);
   for (int y=0; y<height; y++){
-    for (int x = 0; x < width; x++){
-      min((int)row_pointers[y][x*4+0], 255);
-      min((int)row_pointers[y][x*4+1], 255);
-      min((int)row_pointers[y][x*4+2], 255);
-    }
+    row_pointers[y] = (png_bytep)malloc(png_get_rowbytes(png_ptr, info_ptr));
   }
 
-  /*
-
-  png_read_image(png_ptr, row_pointers);
-  png_bytep row_pointers[height];
-  row_pointers = png_malloc(png_ptr, height*sizeof(png_bytep));
-  for (int y=0; y<height; y++){
-    row_pointers[y] = (png_byte*) malloc(png_get_rowbytes(png_ptr,info_ptr));
-  }
   png_read_image(png_ptr, row_pointers);
   png_read_end(png_ptr, NULL);
-  */
 
+  for (int y=0; y<height; y++){
+    for (int x = 0; x<width; x++){
+      //printf("%d ", (int)row_pointers[y][x*4+0]);
+      //printf("%d ", (int)row_pointers[y][x*4+1]);
+      //printf("%d ", (int)row_pointers[y][x*4+2]);
+      //printf(row_pointers[y][x*4+0] < 127 ? " " : "|");
+      printf(row_pointers[y][x*4+1] < 127 ? " " : "|");
+      //printf(row_pointers[y][x*4+2] < 127 ? " " : "|");
+      printf(row_pointers[y][x*4+3] < 127 ? " " : "|");
+    }
+    printf("\n");
+  }
+
+  // free
+  // 以下２行は２次元配列を解放します
+  for (int i = 0; i < height; i++){
+    free(row_pointers[i]);
+  }
+  free(row_pointers);
   png_destroy_read_struct(&png_ptr, &info_ptr, &end_info);
   fseek(fp, 0, SEEK_SET);
   fclose(fp);
@@ -115,10 +127,6 @@ void open_png_file(char * file_name_ptr){
 
 
 /*
-  // free
-  png_destroy_read_struct(&png_ptr, &info_ptr, &end_info);
-  fseek(fp, 0, SEEK_SET);
-  fclose(fp);
 
   printf("width: %d\n", width);
   printf("height: %d\n", height);

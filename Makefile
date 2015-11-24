@@ -26,7 +26,7 @@ debug: CFLAGS = -O1 -g
 debug: all
 
 run:
-	./bin/a.out test.png
+	./bin/a.out chirp_qi.png
 
 asmjs: ./src/*.c
 	$(EMCC) $(EMFLAGS) $(PNGFLAGS) $(INCLUDE) $(DIST).js $(PNGLIBS) $^
