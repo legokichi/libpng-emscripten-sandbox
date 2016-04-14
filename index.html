@@ -1,1 +1,19 @@
 <script src="./bin/a.out.js"></script>
+<script>
+function writeArray(arr){
+  var ptr = Module._malloc(arr.length);
+  Module.writeArrayToMemory(arr, ptr);
+  return ptr;
+}
+function writeAscii(str){
+  var ptr = Module._malloc(str.length);
+  Module.writeAsciiToMemory(str, ptr)
+  return ptr;
+}
+
+window.open_png_file = Module.cwrap('open_png_file', 'null', ["string"])
+setTimeout(function(){
+  open_png_file('/home/web_user/chirp_qi.png');
+}, 1000);
+
+</script>

@@ -85,6 +85,7 @@ emcc -O1 -o ./bin/a.out.js --pre-js ./src/em-pre.js --post-js ./src/em-post.js .
 リンクでは `./zlib-1.2.8/libz.bc` と `./libpng-1.6.21/.libs/libpng16.16.bc` を含めること
 
 ## reference
+
 * http://dencha.ojaru.jp/programs_07/pg_graphic_10a2.html
 * http://invar6.blog.fc2.com/category3-1.html
 * http://invar6.blog.fc2.com/blog-entry-9.html
@@ -93,3 +94,6 @@ emcc -O1 -o ./bin/a.out.js --pre-js ./src/em-pre.js --post-js ./src/em-post.js .
 * https://kripken.github.io/emscripten-site/docs/compiling/Building-Projects.html
 * http://d.hatena.ne.jp/sleepy_yoshi/20090510/p1
 * http://www.ysr.net.it-chiba.ac.jp/data/cc.html
+* https://github.com/kripken/emscripten/wiki/WebAssembly
+* https://github.com/kripken/emscripten/wiki/Linking
+* https://kripken.github.io/emscripten-site/docs/api_reference/preamble.js.html#ccall

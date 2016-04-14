@@ -4,8 +4,8 @@ if (typeof Module === 'undefined') Module = eval('(function() { try { return Mod
 Module['preRun'] = function () {
     FS.createPreloadedFile(
         '/', // 親フォルダの指定
-        '/home/web_user/test.png', // ソース中でのファイル名
-        '/test.png', // httpでアクセスする際のURLを指定
+        '/home/web_user/chirp_qi.png', // ソース中でのファイル名
+        '/chirp_qi.png', // httpでアクセスする際のURLを指定
         true, // 読み込み許可
         false // 書き込み許可
     );

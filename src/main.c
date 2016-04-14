@@ -1,40 +1,45 @@
 #include <png.h>
 #include <stdio.h>
+#include <stdint.h>
 #include <stdlib.h>
 
-void open_png_file(char * file_name_ptr);
+void open_png_file(const char* file_name_ptr);
 
-int main(int argc, char **argv){
+#if !defined(emscripten)
+int main(int argc, char** argv){
   printf("[%s", *argv);
-  for(int i=1; i<argc; i++){
+  for(int32_t i=1; i<argc; i++){
     printf(", %s", *(argv+i));
   }
   printf("]\n");
 
-  char * file_name_ptr;
+  int8_t* file_name_ptr;
   if (argc < 2){
-    //fprintf(stderr, "Usage: program_name <file_in>\n");
-    //abort();
-    file_name_ptr = &"/home/web_user/test.png";
+    fprintf(stderr, "Usage: program_name <file_in>\n");
+    abort();
+    //file_name_ptr = &"/home/web_user/orthogonal.png";
   }else{
-    file_name_ptr = *(argv+1); // typeof argv[1] == char *
+    file_name_ptr = (int8_t*)*(argv+1); // typeof argv[1] == char *
   }
-  printf("file_name_ptr:%d\n", file_name_ptr);
-  open_png_file(file_name_ptr);
+  printf("file_name_ptr:%d\n", (int)file_name_ptr);
+  open_png_file((const char*)file_name_ptr);
 
   return 0;
 }
+#endif
 
-void open_png_file(char * file_name_ptr){
-  FILE * fp = fopen(file_name_ptr, "rb");
-  printf("fp:%d\n", fp);
+void open_png_file(const char* file_name_ptr){
+  printf("fopen: %s\n", file_name_ptr);
+
+  FILE* fp = fopen(file_name_ptr, "rb");
+  printf("fp: %d\n", (int)fp);
   if (!fp){
     fprintf(stderr, "[read_png_file] File %s could not be opened for reading\n", file_name_ptr);
     abort();
   }
   fseek(fp, 0, SEEK_SET);
 
-  char header[8]; // 8 is the maximum size that can be checked
+  int8_t header[8]; // 8 is the maximum size that can be checked
   fread((void *)header, 1, 8, fp);
   if (png_sig_cmp((void *)header, 0, 8)){
     fprintf(stderr, "[read_png_file] File %s is not recognized as a PNG file\n", file_name_ptr);
@@ -77,8 +82,8 @@ void open_png_file(char * file_name_ptr){
   png_set_sig_bytes(png_ptr, 8);
 
   // read info
-  unsigned int width, height;
-  int bit_depth, color_type, filter, compression, interlace;
+  uint32_t width, height;
+  int32_t bit_depth, color_type, filter, compression, interlace;
   png_read_info(png_ptr, info_ptr);
   png_get_IHDR(png_ptr, info_ptr, &width, &height, &bit_depth, &color_type, &interlace, &compression, &filter);
 
@@ -95,7 +100,7 @@ void open_png_file(char * file_name_ptr){
     fprintf(stderr, "[read_png_file] Error during read_image\n");
     abort();
   }
-  unsigned char * * row_pointers = (png_bytepp)malloc(height * sizeof(png_bytep)); // 以下３行は２次元配列を確保します
+  uint8_t ** row_pointers = (png_bytepp)malloc(height * sizeof(png_bytep)); // 以下３行は２次元配列を確保します
   //row_pointers = png_malloc(png_ptr, height*sizeof(png_bytep));
 
   for (int y=0; y<height; y++){
@@ -105,8 +110,8 @@ void open_png_file(char * file_name_ptr){
   png_read_image(png_ptr, row_pointers);
   png_read_end(png_ptr, NULL);
 
-  for (int y=0; y<height; y++){
-    for (int x = 0; x<width; x++){
+  for (int32_t y=0; y<height; y++){
+    for (int32_t x = 0; x<width; x++){
       //printf("%d ", (int)row_pointers[y][x*4+0]);
       //printf("%d ", (int)row_pointers[y][x*4+1]);
       //printf("%d ", (int)row_pointers[y][x*4+2]);
@@ -120,7 +125,7 @@ void open_png_file(char * file_name_ptr){
 
   // free
   // 以下２行は２次元配列を解放します
-  for (int i = 0; i < height; i++){
+  for (int32_t i = 0; i < height; i++){
     free(row_pointers[i]);
   }
   free(row_pointers);
