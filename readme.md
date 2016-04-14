@@ -13,22 +13,30 @@ rm zlib-1.2.8.tar.gz libpng-1.6.21.tar.gz
 
 ### libpngの準備
 
+```sh
+cd libpng-1.6.21
+```
+
 zlib の `zlib.h` の `ZLIB_VERNUM` と
 libpng の `pnglibconf.h` の `PNG_ZLIB_VERNUM` が一致していなければ無理やり一致させる(API変わっていたらダメなので一致するバージョンを用意しましょう)
 
-また、 configure の `--with-zlib-prefix` オプションが emconfigure を使うと何故か効かなくなるので `ZPREFIX` へ直接 zlib へのパスを書き込みます。
-
-`make` では共有ライブラリしか作れないので改めてスタティックライブラリを作る。
+また、configure の `--with-zlib-prefix` オプションが emconfigure を使うと何故か効かなくなるので `ZPREFIX` へ直接 zlib へのパスを書き込みます。
 
 ```sh
-cd libpng-1.6.21
 sed -i -e "s/\#define PNG_ZLIB_VERNUM 0x1250/#define PNG_ZLIB_VERNUM 0x1280/g" ./pnglibconf.h
 sed -i -e "s/ZPREFIX\=\'z\_\'/ZPREFIX='..\/zlib-1.2.8\/'/g" ./configure
 emconfigure ./configure --with-zlib-prefix='../zlib-1.2.8/'
 sed -i -e "s/^DEFAULT_INCLUDES \= \-I\./DEFAULT_INCLUDES = -I. -I..\/zlib-1.2.8\//g" ./Makefile
 sed -i -e "s/^LIBS \= \-lz/LIBS = -L..\/zlib-1.2.8\//g" ./Makefile
-"s/libpng16\_la\_LINK \= \$\(LIBTOOL\) \$\(AM\_V\_lt\)/libpng16_la_LINK = emcc $(AM_V_lt)/"
+```
+
+```sh
 emmake make --include-dir=../zlib-1.2.8/
+```
+
+`make` では共有ライブラリしか作れないので改めてスタティックライブラリを作る。
+
+```sh
 emcc -static  -fno-common -DPIC  .libs/png.o .libs/pngerror.o .libs/pngget.o .libs/pngmem.o .libs/pngpread.o .libs/pngread.o .libs/pngrio.o .libs/pngrtran.o .libs/pngrutil.o .libs/pngset.o .libs/pngtrans.o .libs/pngwio.o .libs/pngwrite.o .libs/pngwtran.o .libs/pngwutil.o   -L../zlib-1.2.8/ -lc    -Wl,-soname -Wl,libpng16.16.dylib -Wl,-retain-symbols-file -Wl,libpng.sym -o .libs/libpng16.16.bc
 ```
 
