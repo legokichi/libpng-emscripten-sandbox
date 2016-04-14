@@ -1,2 +1,4 @@
 libpng-*
 zlib-*
+*.out
+.DS_Store
