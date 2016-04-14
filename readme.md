@@ -1,6 +1,28 @@
 # libpng-emscripten-sandbox
 
 
+## environment
+
+```
+$ emcc --version
+emcc (Emscripten gcc/clang-like replacement) 1.35.0 ()
+Copyright (C) 2014 the Emscripten authors (see AUTHORS.txt)
+This is free and open source software under the MIT license.
+There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+$ clang --version
+clang version 3.7.0 (https://github.com/kripken/emscripten-fastcomp-clang dbe68fecd03d6f646bd075963c3cc0e7130e5767) (https://github.com/kripken/emscripten-fastcomp 4e83be90903250ec5142edc57971ed4c633c5e25)
+Target: x86_64-apple-darwin15.4.0
+Thread model: posix
+
+$ where clang
+/Users/***/emsdk_portable/clang/e1.35.0_64bit/clang
+/usr/bin/clang
+
+$ where emcc
+/Users/***/emsdk_portable/emscripten/1.35.0/emcc
+```
+
 ## download zlib and libpng
 
 ```sh
@@ -54,8 +76,8 @@ libpng の `pnglibconf.h` の `PNG_ZLIB_VERNUM` が一致していなければ�
 ### usage
 
 ```sh
-emcc -std=c11 -Wall -I./zlib-1.2.8 -I./libpng-1.6.21 -o ./obj/main.bc -c ./src/main.c
-emcc -O1 -o ./bin/a.out.js --pre-js ./src/em-pre.js --post-js ./src/em-post.js ./zlib-1.2.8/libz.bc ./libpng-1.6.21/.libs/libpng16.16.bc ./obj/main.bc
+emcc -std=c11 -Wall -I./zlib-1.2.8 -I./libpng-1.6.21 -o ./obj/main.o -c ./src/main.c
+emcc -O1 -o ./bin/a.out.js --pre-js ./src/em-pre.js --post-js ./src/em-post.js ./zlib-1.2.8/libz.bc ./libpng-1.6.21/.libs/libpng16.16.bc ./obj/main.o
 ```
 
 コンパイルは普通に zlib と libpng のヘッダファイルのディレクトリを `-I` で参照させる

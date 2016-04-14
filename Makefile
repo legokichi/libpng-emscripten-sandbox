@@ -1,17 +1,8 @@
-# include
-ZLIBFLAGS = -I./zlib-1.2.8
-PNGFLAGS = -I./libpng-1.6.21
-INCLUDE = -I./include $(ZLIBFLAGS) $(PNGFLAGS)
-# compiler and linker
+INCLUDE = -I./include $(shell pkg-config libpng --cflags) $(shell pkg-config libpng --libs)
 CFLAGS = -Wall -O0
-EMCCFLAGS = -Wall -O1 -s EXPORTED_FUNCTIONS="['_main', '_open_png_file']" #-s ALLOW_MEMORY_GROWTH=1 -O3 -g3 --js-opts 1 --closure 2
-## -O1 is asm.js
-CC = gcc -std=c11 # gnu c compiler or clang
-EMCC = emcc -std=c11 # compiler
-LD = gcc # linker
-EMLD = emcc # linker
+CC = gcc -std=c11
+LD = gcc
 LDFLAGS =
-EMLDFLAGS = --pre-js ./src/em-pre.js --post-js ./src/em-post.js # -shared --memory-init-file 0  -s EXPORTED_FUNCTIONS=$(EXPORTED_FUNCTIONS) -s ALLOW_MEMORY_GROWTH=1
 ODIR = ./obj
 SDIR = ./src
 DIST = ./bin
@@ -20,29 +11,31 @@ OBJS = $(SRCS:./src/%.c=./obj/%.o)
 TARGET = $(DIST)/a.out
 
 
-emcc: CC = $(EMCC)
-emcc: FLAGS = $(EMCCFLAGS)
-emcc: LD = $(EMLD)
-emcc: LDFLAGS = $(EMLDFLAGS)
-emcc: INCLUDE = $()
-emcc: OBJS = $(OBJS) ./zlib-1.2.8/libz.bc ./libpng-1.6.21/.libs/libpng16.16.bc
-emcc: $(TARGET)
-	mv $(TARGET) $(TARGET).js
+emcc: CC = emcc -std=c11
+emcc: FLAGS = -Wall -O1
+emcc: INCLUDE = -I./include -I./zlib-1.2.8 -I./libpng-1.6.21
+emcc: LD = emcc -O1
+emcc: LDFLAGS = --pre-js ./src/em-pre.js --post-js ./src/em-post.js -s EXPORTED_FUNCTIONS="['_main', '_open_png_file']" ./zlib-1.2.8/libz.bc ./libpng-1.6.21/.libs/libpng16.16.bc  # -shared --memory-init-file 0 -s ALLOW_MEMORY_GROWTH=1 -O3 -g3 --js-opts 1 --closure 2
+emcc: $(TARGET).js
 
-all : $(TARGET)
+$(TARGET).js: $(OBJS)
+	if [ ! -d $(DIST) ]; then mkdir $(DIST); fi
+	$(LD) -o $@ $(LDFLAGS) $^
+
+all: $(TARGET)
 
 $(TARGET): $(OBJS)
 	if [ ! -d $(DIST) ]; then mkdir $(DIST); fi
-	$(LD) $(INCLUDE) $(LDFLAGS) -o $@ $^
+	$(LD) -o $@ $(LDFLAGS) $^
 
 $(ODIR)/%.o: $(SDIR)/%.c
 	if [ ! -d $(ODIR) ]; then mkdir $(ODIR); fi
-	$(CC) $(CFLAGS) $(INCLUDE) -o $@ -c $<
+	$(CC) -o $@ $(CFLAGS) $(INCLUDE) -c $<
 
 debug: CFLAGS = $(CFLAGS) -O1 -g
 debug: all
 
-debugjs: $(EMCCFLAGS) = -O1 -g -s INLINING_LIMIT=10
+debugjs: CFLAGS = $(CFLAGS) -O1 -g -s INLINING_LIMIT=10
 debugjs: asmjs
 
 run:
