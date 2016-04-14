@@ -1,7 +1,6 @@
 #include <png.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <main.h>
 
 void open_png_file(char * file_name_ptr);
 
@@ -16,10 +15,11 @@ int main(int argc, char **argv){
   if (argc < 2){
     //fprintf(stderr, "Usage: program_name <file_in>\n");
     //abort();
-    file_name_ptr = &"test.png";
+    file_name_ptr = &"/home/web_user/test.png";
   }else{
     file_name_ptr = *(argv+1); // typeof argv[1] == char *
   }
+  printf("file_name_ptr:%d\n", file_name_ptr);
   open_png_file(file_name_ptr);
 
   return 0;
@@ -27,6 +27,7 @@ int main(int argc, char **argv){
 
 void open_png_file(char * file_name_ptr){
   FILE * fp = fopen(file_name_ptr, "rb");
+  printf("fp:%d\n", fp);
   if (!fp){
     fprintf(stderr, "[read_png_file] File %s could not be opened for reading\n", file_name_ptr);
     abort();
@@ -39,6 +40,7 @@ void open_png_file(char * file_name_ptr){
     fprintf(stderr, "[read_png_file] File %s is not recognized as a PNG file\n", file_name_ptr);
     abort();
   }
+  printf("maybe png file");
 
   // initialize structure
   // Next, png_struct and png_info need to be allocated and initialized.

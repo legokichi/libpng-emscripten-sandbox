@@ -2,3 +2,5 @@ libpng-*
 zlib-*
 *.out
 .DS_Store
+obj
+bin
