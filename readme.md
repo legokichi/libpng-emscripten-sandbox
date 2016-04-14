@@ -1,6 +1,7 @@
 # libpng-emscripten-sandbox
 
 
+
 ## download libraries
 
 ```sh
@@ -13,7 +14,6 @@ rm zlib-1.2.8.tar.gz libpng-1.6.21.tar.gz
 ## complie libraries
 
 ```sh
-alias gcc=clang
 cd zlib-1.2.8
 ./configure
 make
@@ -33,7 +33,7 @@ emcc -std=c11 -Wall -O1 -I./zlib-1.2.8 -I./libpng-1.6.21 -c zlib-1.2.8/gzlib.c l
 emcc -o a.out.js --pre-js ./src/em-pre.js --post-js ./src/em-post.js    main.o gzlib.o png.o
 ```
 
-### WTGF
+### WTF
 
 ```
 $ emcc -o a.out.js --pre-js ./src/em-pre.js --post-js ./src/em-post.js    main.o gzlib.o png.o
