@@ -28,6 +28,7 @@ int main(int argc, char** argv){
 }
 #endif
 
+#if !defined(standalone)
 void open_png_file(const char* file_name_ptr){
   printf("fopen: %s\n", file_name_ptr);
 
@@ -133,3 +134,4 @@ void open_png_file(const char* file_name_ptr){
   fseek(fp, 0, SEEK_SET);
   fclose(fp);
 }
+#endif

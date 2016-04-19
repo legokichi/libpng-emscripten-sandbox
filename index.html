@@ -1,4 +1,4 @@
-<script src="./bin/a.out.js"></script>
+<script src="./bin/a.js"></script>
 <script>
 function writeArray(arr){
   var ptr = Module._malloc(arr.length);
@@ -16,4 +16,15 @@ setTimeout(function(){
   open_png_file('/home/web_user/chirp_qi.png');
 }, 1000);
 
+</script>
+<script>
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', './bin/a.wasm', true);
+  xhr.responseType = 'arraybuffer';
+  xhr.onload = function() {
+    var wasm = Wasm.instantiateModule(new Uint8Array(xhr.response), {} );
+    console.log(wasm);
+    window.wasm;
+  };
+  xhr.send(null);
 </script>

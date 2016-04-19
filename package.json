@@ -1,0 +1,22 @@
+{
+  "name": "libpng-emscrepten-sandbox",
+  "version": "1.0.0",
+  "description": "",
+  "main": "bin/a.out.js",
+  "scripts": {
+    "build": "make clean; make wasm",
+    "start": "./bin/a.out & http-server &",
+    "stop": "killall node */http-server",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/legokichi/libpng-emscripten-sandbox.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/legokichi/libpng-emscripten-sandbox/issues"
+  },
+  "homepage": "https://github.com/legokichi/libpng-emscripten-sandbox#readme"
+}
